@@ -28,7 +28,7 @@
 
 /******************************************************************************/
 
-#define PACKET_ARRIVAL_RATE 400 /* packets per second */
+#define PACKET_ARRIVAL_RATES_LIST 400, 800, 1500, 3000, 5000, 7500, 10000, 15000, 20000, 30000, 50000, 75000, 100000 /* packets per second */
 #define PACKET_LENGTH 1e3 /* bits */
 #define LINK_BIT_RATE 1e6 /* bits per second */
 #define RUNLENGTH 10e6 /* packets */
