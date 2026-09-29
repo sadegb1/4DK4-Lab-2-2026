@@ -70,6 +70,7 @@ main(void)
     * Loop for each random number generator seed, doing a separate
     * simulation_run run for each.
     */
+    j = 0;
 
     while ((random_seed = RANDOM_SEEDS[j++]) != 0) {
 
@@ -128,7 +129,7 @@ main(void)
     }
   }
 
-  getchar();   /* Pause before finishing. */
+  // getchar();   /* Pause before finishing. */
   return 0;
 }
 

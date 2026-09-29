@@ -34,7 +34,7 @@
 #define RUNLENGTH 10e6 /* packets */
 
 /* Comma separated list of random seeds to run. */
-#define RANDOM_SEED_LIST 333333, 444444
+#define RANDOM_SEED_LIST 400315188, 400381481, 400385757
 
 #define PACKET_XMT_TIME ((double) PACKET_LENGTH/LINK_BIT_RATE)
 #define BLIPRATE (RUNLENGTH/1000)
