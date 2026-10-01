@@ -59,77 +59,68 @@ main(void)
   unsigned random_seed;
   int j=0;
 
-  double PACKET_ARRIVAL_RATES[] = {PACKET_ARRIVAL_RATES_LIST, 0};
-  printf("Random Seed, Packet arrival count, Transmitted packet count, Service fraction, Arrival rate, Mean Delay (msec)\n");
+  /* 
+   * Loop for each random number generator seed, doing a separate
+   * simulation_run run for each.
+   */
 
+  while ((random_seed = RANDOM_SEEDS[j++]) != 0) {
 
-  for (int i = 0; i < sizeof(PACKET_ARRIVAL_RATES)/sizeof(double) - 1; i++) {
-    data.arrival_rate = PACKET_ARRIVAL_RATES[i];
+    simulation_run = simulation_run_new(); /* Create a new simulation run. */
+
+    /*
+     * Set the simulation_run data pointer to our data object.
+     */
+
+    simulation_run_attach_data(simulation_run, (void *) & data);
 
     /* 
-    * Loop for each random number generator seed, doing a separate
-    * simulation_run run for each.
-    */
-    j = 0;
+     * Initialize the simulation_run data variables, declared in main.h.
+     */
+    
+    data.blip_counter = 0;
+    data.arrival_count = 0;
+    data.number_of_packets_processed = 0;
+    data.accumulated_delay = 0.0;
+    data.random_seed = random_seed;
+ 
+    /* 
+     * Create the packet buffer and transmission link, declared in main.h.
+     */
 
-    while ((random_seed = RANDOM_SEEDS[j++]) != 0) {
+    data.buffer = fifoqueue_new();
+    data.link   = server_new();
 
-      simulation_run = simulation_run_new(); /* Create a new simulation run. */
+    /* 
+     * Set the random number generator seed for this run.
+     */
 
-      /*
-      * Set the simulation_run data pointer to our data object.
-      */
+    random_generator_initialize(random_seed);
 
-      simulation_run_attach_data(simulation_run, (void *) & data);
+    /* 
+     * Schedule the initial packet arrival for the current clock time (= 0).
+     */
 
-      /* 
-      * Initialize the simulation_run data variables, declared in main.h.
-      */
-      
-      data.blip_counter = 0;
-      data.arrival_count = 0;
-      data.number_of_packets_processed = 0;
-      data.accumulated_delay = 0.0;
-      data.random_seed = random_seed;
-  
-      /* 
-      * Create the packet buffer and transmission link, declared in main.h.
-      */
+    schedule_packet_arrival_event(simulation_run, 
+				  simulation_run_get_time(simulation_run));
 
-      data.buffer = fifoqueue_new();
-      data.link   = server_new();
+    /* 
+     * Execute events until we are finished. 
+     */
 
-      /* 
-      * Set the random number generator seed for this run.
-      */
-
-      random_generator_initialize(random_seed);
-
-      /* 
-      * Schedule the initial packet arrival for the current clock time (= 0).
-      */
-
-      schedule_packet_arrival_event(simulation_run, 
-            simulation_run_get_time(simulation_run));
-
-      /* 
-      * Execute events until we are finished. 
-      */
-
-      while(data.number_of_packets_processed < RUNLENGTH) {
-        simulation_run_execute_event(simulation_run);
-      }
-
-      /*
-      * Output results and clean up after ourselves.
-      */
-
-      output_results(simulation_run);
-      cleanup_memory(simulation_run);
+    while(data.number_of_packets_processed < RUNLENGTH) {
+      simulation_run_execute_event(simulation_run);
     }
+
+    /*
+     * Output results and clean up after ourselves.
+     */
+
+    output_results(simulation_run);
+    cleanup_memory(simulation_run);
   }
 
-  // getchar();   /* Pause before finishing. */
+  getchar();   /* Pause before finishing. */
   return 0;
 }
 
