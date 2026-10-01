@@ -35,6 +35,8 @@
 #define LINK_BIT_RATE23 1e6 /* bits per second */
 #define RUNLENGTH 10e6 /* packets */
 
+#define P12 0.5 /* Probability of routing a Link 1 packet to Link 2 */
+
 /* Comma separated list of random seeds to run. */
 #define RANDOM_SEED_LIST 400315188, 400381481, 400385757
 

@@ -33,9 +33,17 @@
 
 /******************************************************************************/
 
+typedef struct _arrival_source_
+{
+  double arrival_rate;
+  int switch_id;
+} Arrival_Source, * Arrival_Source_Ptr;
+
 typedef struct _simulation_run_data_ 
 {
-  Fifoqueue_Ptr buffer;
+  Fifoqueue_Ptr buffer1;
+  Fifoqueue_Ptr buffer2;
+  Fifoqueue_Ptr buffer3;
   Server_Ptr link1;
   Server_Ptr link2;
   Server_Ptr link3;
@@ -44,7 +52,10 @@ typedef struct _simulation_run_data_
   long int number_of_packets_processed;
   double accumulated_delay;
   unsigned random_seed;
-  double arrival_rate;
+  double p12;
+  Arrival_Source arrival_sources[3];
+  long int packets_processed_by_source[3];
+  double accumulated_delay_by_source[3];
   long int delay_over_20_counter;
 } Simulation_Run_Data, * Simulation_Run_Data_Ptr;
 

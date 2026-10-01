@@ -66,45 +66,72 @@ end_packet_transmission_event(Simulation_Run_Ptr simulation_run, void * link)
 {
   Simulation_Run_Data_Ptr data;
   Packet_Ptr this_packet, next_packet;
+  Server_Ptr completed_link;
+  Server_Ptr downstream_link;
+  Fifoqueue_Ptr downstream_buffer;
+  Fifoqueue_Ptr waiting_buffer;
+  double current_packet_delay;
+  int source_index;
 
   TRACE(printf("End Of Packet.\n"););
 
   data = (Simulation_Run_Data_Ptr) simulation_run_data(simulation_run);
+  completed_link = (Server_Ptr) link;
 
   /* 
    * Packet transmission is finished. Take the packet off the data link.
    */
 
-  this_packet = (Packet_Ptr) server_get(link);
+  this_packet = (Packet_Ptr) server_get(completed_link);
 
-  /* Collect statistics. */
+  if(completed_link == data->link1) {
+    if(uniform_generator() < data->p12) {
+      this_packet->destination_id = 2;
+      downstream_link = data->link2;
+      downstream_buffer = data->buffer2;
+    } else {
+      this_packet->destination_id = 3;
+      downstream_link = data->link3;
+      downstream_buffer = data->buffer3;
+    }
+
+    if(server_state(downstream_link) == BUSY) {
+      fifoqueue_put(downstream_buffer, (void *) this_packet);
+    } else {
+      start_transmission_on_link(simulation_run, this_packet, downstream_link);
+    }
+
+    if(fifoqueue_size(data->buffer1) > 0) {
+      next_packet = (Packet_Ptr) fifoqueue_get(data->buffer1);
+      start_transmission_on_link(simulation_run, next_packet, data->link1);
+    }
+
+    return;
+  }
+
+  waiting_buffer = completed_link == data->link2
+      ? data->buffer2
+      : data->buffer3;
+  source_index = this_packet->source_id - 1;
+  current_packet_delay = simulation_run_get_time(simulation_run) -
+      this_packet->arrive_time;
+
   data->number_of_packets_processed++;
-
-  double current_packet_delay = simulation_run_get_time(simulation_run) - 
-    this_packet->arrive_time;
-
+  data->packets_processed_by_source[source_index]++;
   data->accumulated_delay += current_packet_delay;
-  
-  // Check if the delay is greater than 20 milliseconds (0.020 seconds)
-  if (current_packet_delay > 0.020) {
+  data->accumulated_delay_by_source[source_index] += current_packet_delay;
+
+  if(current_packet_delay > 0.020) {
     data->delay_over_20_counter++;
   }
 
-  /* Output activity blip every so often. */
-  // output_progress_msg_to_screen(simulation_run);
-
-  /* This packet is done ... give the memory back. */
   xfree((void *) this_packet);
 
-  /* 
-   * See if there is are packets waiting in the buffer. If so, take the next one
-   * out and transmit it immediately.
-  */
-
-  if(fifoqueue_size(data->buffer) > 0) {
-    next_packet = (Packet_Ptr) fifoqueue_get(data->buffer);
-    start_transmission_on_link(simulation_run, next_packet, link);
+  if(fifoqueue_size(waiting_buffer) > 0) {
+    next_packet = (Packet_Ptr) fifoqueue_get(waiting_buffer);
+    start_transmission_on_link(simulation_run, next_packet, completed_link);
   }
+
 }
 
 /*
@@ -123,6 +150,10 @@ start_transmission_on_link(Simulation_Run_Ptr simulation_run,
   server_put(link, (void*) this_packet);
   this_packet->status = XMTTING;
 
+  Simulation_Run_Data_Ptr data =
+    (Simulation_Run_Data_Ptr) simulation_run_data(simulation_run);
+  this_packet->service_time = get_packet_transmission_time(data, link);
+
   /* Schedule the end of packet transmission event. */
   schedule_end_packet_transmission_event(simulation_run,
 	 simulation_run_get_time(simulation_run) + this_packet->service_time,
@@ -138,7 +169,7 @@ double
 get_packet_transmission_time(Simulation_Run_Data_Ptr data, Server_Ptr link)
 {
 
-  return ((double) (link == data->link1) ? PACKET_XMT_TIME1 : PACKET_XMT_TIME23);
+  return link == data->link1 ? PACKET_XMT_TIME1 : PACKET_XMT_TIME23;
 }
 
 

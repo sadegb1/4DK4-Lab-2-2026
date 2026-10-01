@@ -57,18 +57,23 @@ main(void)
 
   unsigned RANDOM_SEEDS[] = {RANDOM_SEED_LIST, 0};
   unsigned random_seed;
-  int j=0;
+  int j;
+  int source_index;
 
-  printf("Random Seed, Packet arrival count, Transmitted packet count, Service fraction, Arrival rate, Mean Delay (msec), Delay > 20, Delay > 20 Fraction\n");
+  printf("p12,random_seed,mean_delay_switch1_ms,mean_delay_switch2_ms,mean_delay_switch3_ms\n");
 
-  data.arrival_rate = PACKET_ARRIVAL_RATE1; /* packets per second */
+  data.arrival_sources[0].switch_id = 1;
+  data.arrival_sources[0].arrival_rate = PACKET_ARRIVAL_RATE1;
+  data.arrival_sources[1].switch_id = 2;
+  data.arrival_sources[1].arrival_rate = PACKET_ARRIVAL_RATE23;
+  data.arrival_sources[2].switch_id = 3;
+  data.arrival_sources[2].arrival_rate = PACKET_ARRIVAL_RATE23;
 
   /* 
   * Loop for each random number generator seed, doing a separate
   * simulation_run run for each.
   */
   j = 0;
-
   while ((random_seed = RANDOM_SEEDS[j++]) != 0) {
 
     simulation_run = simulation_run_new(); /* Create a new simulation run. */
@@ -88,13 +93,20 @@ main(void)
     data.number_of_packets_processed = 0;
     data.accumulated_delay = 0.0;
     data.random_seed = random_seed;
+    data.p12 = P12;
     data.delay_over_20_counter = 0;
+    for(source_index = 0; source_index < 3; source_index++) {
+      data.packets_processed_by_source[source_index] = 0;
+      data.accumulated_delay_by_source[source_index] = 0.0;
+    }
 
     /* 
     * Create the packet buffer and transmission link, declared in main.h.
     */
 
-    data.buffer = fifoqueue_new();
+    data.buffer1 = fifoqueue_new();
+    data.buffer2 = fifoqueue_new();
+    data.buffer3 = fifoqueue_new();
     data.link1   = server_new();
     data.link2   = server_new();
     data.link3   = server_new();
@@ -107,8 +119,11 @@ main(void)
     /* 
     * Schedule the initial packet arrival for the current clock time (= 0).
     */
-    schedule_packet_arrival_event(simulation_run, 
-          simulation_run_get_time(simulation_run));
+    for(source_index = 0; source_index < 3; source_index++) {
+      schedule_packet_arrival_event(simulation_run,
+          simulation_run_get_time(simulation_run),
+          &data.arrival_sources[source_index]);
+    }
 
     /* 
     * Execute events until we are finished. 
