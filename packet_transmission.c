@@ -135,9 +135,10 @@ start_transmission_on_link(Simulation_Run_Ptr simulation_run,
  */
 
 double
-get_packet_transmission_time(void)
+get_packet_transmission_time(Simulation_Run_Data_Ptr data, Server_Ptr link)
 {
-  return ((double) PACKET_XMT_TIME);
+
+  return ((double) (link == data->link1) ? PACKET_XMT_TIME1 : PACKET_XMT_TIME23);
 }
 
 
