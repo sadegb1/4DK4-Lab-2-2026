@@ -95,7 +95,7 @@ output_results(Simulation_Run_Ptr simulation_run)
 
 
   // printf("Random Seed, Arrival rate, Packet arrival count, Transmitted packet count, Service fraction, Arrival rate, Mean Delay (msec)\n");
-  printf("%d, %.5f, %ld, %ld, %.5f, %.3f, %.2f\n", data->random_seed, data->arrival_rate, data->arrival_count, data->number_of_packets_processed, xmtted_fraction, (double) data->arrival_rate, 1e3*data->accumulated_delay/data->number_of_packets_processed);
+  printf("%d, %ld, %ld, %.5f, %.3f, %.2f\n", data->random_seed, data->arrival_count, data->number_of_packets_processed, xmtted_fraction, (double) data->arrival_rate, 1e3*data->accumulated_delay/data->number_of_packets_processed);
 
 }
 
