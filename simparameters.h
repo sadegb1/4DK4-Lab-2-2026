@@ -28,7 +28,7 @@
 
 /******************************************************************************/
 
-#define PACKET_ARRIVAL_RATES_LIST 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2100, 2200, 2300, 2400, 2500  /* packets per second */
+#define PACKET_ARRIVAL_RATES_LIST 401, 402, 403, 404, 405, 406, 407, 408, 409 // 300, 310, 320, 330, 340, 350, 360, 370, 380, 390, 400, 410, 420, 430, 440, 450, 460, 470, 480, 490, 500 /* packets per second */
 #define PACKET_LENGTH 2e3 /* bits */
 #define LINK_BIT_RATE 1e6 /* bits per second */
 #define RUNLENGTH 10e6 /* packets */

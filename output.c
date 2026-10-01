@@ -81,8 +81,8 @@ output_results(Simulation_Run_Ptr simulation_run)
   // printf("Random Seed = %d \n", data->random_seed);
   // printf("Packet arrival count = %ld \n", data->arrival_count);
 
-  // xmtted_fraction = (double) data->number_of_packets_processed /
-  //   data->arrival_count;
+  xmtted_fraction = (double) data->number_of_packets_processed /
+    data->arrival_count;
 
   // printf("Transmitted packet count  = %ld (Service Fraction = %.5f)\n",
 	//  data->number_of_packets_processed, xmtted_fraction);
@@ -95,7 +95,7 @@ output_results(Simulation_Run_Ptr simulation_run)
 
 
   // printf("Random Seed, Arrival rate, Packet arrival count, Transmitted packet count, Service fraction, Arrival rate, Mean Delay (msec)\n");
-  printf("%d, %ld, %ld, %.5f, %.3f, %.2f\n", data->random_seed, data->arrival_count, data->number_of_packets_processed, xmtted_fraction, (double) data->arrival_rate, 1e3*data->accumulated_delay/data->number_of_packets_processed);
+  printf("%d, %ld, %ld, %.5f, %.3f, %.2f, %ld, %.5f\n", data->random_seed, data->arrival_count, data->number_of_packets_processed, xmtted_fraction, (double) data->arrival_rate, 1e3*data->accumulated_delay/data->number_of_packets_processed, data->delay_over_20_counter, data->delay_over_20_counter / (double) data->number_of_packets_processed);
 
 }
 

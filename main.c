@@ -60,7 +60,7 @@ main(void)
   int j=0;
 
   double PACKET_ARRIVAL_RATES[] = {PACKET_ARRIVAL_RATES_LIST, 0};
-  printf("Random Seed, Packet arrival count, Transmitted packet count, Service fraction, Arrival rate, Mean Delay (msec)\n");
+  printf("Random Seed, Packet arrival count, Transmitted packet count, Service fraction, Arrival rate, Mean Delay (msec), Delay > 20, Delay > 20 Fraction\n");
 
 
   for (int i = 0; i < sizeof(PACKET_ARRIVAL_RATES)/sizeof(double) - 1; i++) {
@@ -91,6 +91,7 @@ main(void)
       data.number_of_packets_processed = 0;
       data.accumulated_delay = 0.0;
       data.random_seed = random_seed;
+      data.delay_over_20_counter = 0;
   
       /* 
       * Create the packet buffer and transmission link, declared in main.h.

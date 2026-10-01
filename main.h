@@ -43,6 +43,7 @@ typedef struct _simulation_run_data_
   double accumulated_delay;
   unsigned random_seed;
   double arrival_rate;
+  long int delay_over_20_counter;
 } Simulation_Run_Data, * Simulation_Run_Data_Ptr;
 
 typedef enum {XMTTING, WAITING} Packet_Status;
