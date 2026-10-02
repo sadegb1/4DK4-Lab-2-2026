@@ -28,15 +28,22 @@
 
 /******************************************************************************/
 
-#define PACKET_ARRIVAL_RATE 400 /* packets per second */
-#define PACKET_LENGTH 1e3 /* bits */
+#define MEAN_ARRIVAL_RATE_MIN 0 /* packets per second */
+#define MEAN_ARRIVAL_RATE_MAX 20 /* packets per second */
+#define MEAN_ARRIVAL_RATE_STEP 1 /* packets per second */
+#define DATA_MEAN_SERVICE_TIME 40e-3 /* seconds */
+#define VOICE_CODEC_BIT_RATE 64e3 /* G.711 bits per second */
+#define VOICE_PACKET_INTERVAL 20e-3 /* seconds */
+#define PACKET_HEADER_BYTES 62
 #define LINK_BIT_RATE 1e6 /* bits per second */
-#define RUNLENGTH 10e6 /* packets */
+#define RUNLENGTH 100000 /* completed packets per run */
 
 /* Comma separated list of random seeds to run. */
-#define RANDOM_SEED_LIST 333333, 444444
+#define RANDOM_SEED_LIST 333333, 444444, 555555, 666666, 777777, 888888, 999999
 
-#define PACKET_XMT_TIME ((double) PACKET_LENGTH/LINK_BIT_RATE)
+#define VOICE_PACKET_PAYLOAD_BITS (VOICE_CODEC_BIT_RATE * VOICE_PACKET_INTERVAL)
+#define VOICE_PACKET_BITS (VOICE_PACKET_PAYLOAD_BITS + PACKET_HEADER_BYTES * 8)
+#define VOICE_PACKET_XMT_TIME (VOICE_PACKET_BITS / LINK_BIT_RATE)
 #define BLIPRATE (RUNLENGTH/1000)
 
 /******************************************************************************/

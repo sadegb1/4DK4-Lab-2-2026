@@ -31,13 +31,6 @@
 
 /******************************************************************************/
 
-/*
- * This function will schedule a packet arrival at a time given by
- * event_time. At that time the function "packet_arrival" (located in
- * packet_arrival.c) is executed. An object can be attached to the event and
- * can be recovered in packet_arrival.c.
- */
-
 long int
 schedule_packet_arrival_event(Simulation_Run_Ptr simulation_run,
 			      double event_time)
@@ -51,48 +44,70 @@ schedule_packet_arrival_event(Simulation_Run_Ptr simulation_run,
   return simulation_run_schedule_event(simulation_run, event, event_time);
 }
 
-/******************************************************************************/
+long int
+schedule_voice_packet_arrival_event(Simulation_Run_Ptr simulation_run,
+				    double event_time)
+{
+  Event event;
 
-/*
- * This is the event function which is executed when a packet arrival event
- * occurs. It creates a new packet object and places it in either the fifo
- * queue if the server is busy. Otherwise it starts the transmission of the
- * packet. It then schedules the next packet arrival event.
- */
+  event.description = "Voice Packet Arrival";
+  event.function = voice_packet_arrival_event;
+  event.attachment = (void *) NULL;
 
-void
-packet_arrival_event(Simulation_Run_Ptr simulation_run, void * ptr)
+  return simulation_run_schedule_event(simulation_run, event, event_time);
+}
+
+static void
+arrive_packet(Simulation_Run_Ptr simulation_run, Traffic_Class traffic_class,
+	      double service_time)
 {
   Simulation_Run_Data_Ptr data;
   Packet_Ptr new_packet;
 
   data = (Simulation_Run_Data_Ptr) simulation_run_data(simulation_run);
   data->arrival_count++;
+  data->arrivals_by_class[traffic_class]++;
 
   new_packet = (Packet_Ptr) xmalloc(sizeof(Packet));
   new_packet->arrive_time = simulation_run_get_time(simulation_run);
-  new_packet->service_time = get_packet_transmission_time();
+  new_packet->service_time = service_time;
+  new_packet->source_id = traffic_class;
   new_packet->status = WAITING;
-
-  /* 
-   * Start transmission if the data link is free. Otherwise put the packet into
-   * the buffer.
-   */
 
   if(server_state(data->link) == BUSY) {
     fifoqueue_put(data->buffer, (void*) new_packet);
   } else {
     start_transmission_on_link(simulation_run, new_packet, data->link);
   }
+}
 
-  /* 
-   * Schedule the next packet arrival. Independent, exponentially distributed
-   * interarrival times gives us Poisson process arrivals.
-   */
+/******************************************************************************/
 
-  schedule_packet_arrival_event(simulation_run,
-			simulation_run_get_time(simulation_run) +
-			exponential_generator((double) 1/PACKET_ARRIVAL_RATE));
+void
+packet_arrival_event(Simulation_Run_Ptr simulation_run, void * ptr)
+{
+  Simulation_Run_Data_Ptr data;
+
+  (void) ptr;
+  data = (Simulation_Run_Data_Ptr) simulation_run_data(simulation_run);
+  arrive_packet(simulation_run, DATA_TRAFFIC,
+		exponential_generator(DATA_MEAN_SERVICE_TIME));
+
+  /* Exponential interarrival times produce Poisson arrivals. */
+  if(data->MEAN_ARRIVAL_RATE > 0)
+    schedule_packet_arrival_event(simulation_run,
+     simulation_run_get_time(simulation_run) +
+     exponential_generator(1.0 / data->MEAN_ARRIVAL_RATE));
+}
+
+void
+voice_packet_arrival_event(Simulation_Run_Ptr simulation_run, void * ptr)
+{
+  (void) ptr;
+  arrive_packet(simulation_run, VOICE_TRAFFIC, get_packet_transmission_time());
+  schedule_voice_packet_arrival_event(simulation_run,
+       simulation_run_get_time(simulation_run) +
+       VOICE_PACKET_INTERVAL);
 }
 
 

@@ -72,27 +72,25 @@ output_progress_msg_to_screen(Simulation_Run_Ptr simulation_run)
 void
 output_results(Simulation_Run_Ptr simulation_run)
 {
-  double xmtted_fraction;
+  double voice_mean_delay;
+  double data_mean_delay;
   Simulation_Run_Data_Ptr data;
 
   data = (Simulation_Run_Data_Ptr) simulation_run_data(simulation_run);
 
-  printf("\n");
-  printf("Random Seed = %d \n", data->random_seed);
-  printf("Packet arrival count = %ld \n", data->arrival_count);
+  voice_mean_delay = 1e3 * data->accumulated_delay_by_class[VOICE_TRAFFIC] /
+    data->processed_by_class[VOICE_TRAFFIC];
+  printf("%u,%d,%.3f,", data->random_seed, data->MEAN_ARRIVAL_RATE,
+	 voice_mean_delay);
 
-  xmtted_fraction = (double) data->number_of_packets_processed /
-    data->arrival_count;
+  if(data->processed_by_class[DATA_TRAFFIC] > 0) {
+    data_mean_delay = 1e3 * data->accumulated_delay_by_class[DATA_TRAFFIC] /
+      data->processed_by_class[DATA_TRAFFIC];
+    printf("%.3f", data_mean_delay);
+  }
 
-  printf("Transmitted packet count  = %ld (Service Fraction = %.5f)\n",
-	 data->number_of_packets_processed, xmtted_fraction);
-
-  printf("Arrival rate = %.3f packets/second \n", (double) PACKET_ARRIVAL_RATE);
-
-  printf("Mean Delay (msec) = %.2f \n",
-	 1e3*data->accumulated_delay/data->number_of_packets_processed);
-
-  printf("\n");
+  printf(",%ld,%ld\n", data->processed_by_class[VOICE_TRAFFIC],
+	 data->processed_by_class[DATA_TRAFFIC]);
 }
 
 

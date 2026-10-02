@@ -42,6 +42,12 @@ packet_arrival_event(Simulation_Run_Ptr, void*);
 long
 schedule_packet_arrival_event(Simulation_Run_Ptr, double);
 
+void
+voice_packet_arrival_event(Simulation_Run_Ptr, void*);
+
+long
+schedule_voice_packet_arrival_event(Simulation_Run_Ptr, double);
+
 /******************************************************************************/
 
 #endif /* packet_arrival.h */

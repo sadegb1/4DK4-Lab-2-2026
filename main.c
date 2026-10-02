@@ -26,6 +26,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <string.h>
 #include "output.h"
 #include "simparameters.h"
 #include "packet_arrival.h"
@@ -35,92 +36,59 @@
 
 /******************************************************************************/
 
-/*
- * main.c declares and creates a new simulation_run with parameters defined in
- * simparameters.h. The code creates a fifo queue and server for the single
- * server queueuing system. It then loops through the list of random number
- * generator seeds defined in simparameters.h, doing a separate simulation_run
- * run for each. To start a run, it schedules the first packet arrival
- * event. When each run is finished, output is printed on the terminal.
- */
-
+/* Run the simulation for each data rate and seed. */
 int
 main(void)
 {
   Simulation_Run_Ptr simulation_run;
   Simulation_Run_Data data;
 
-  /*
-   * Declare and initialize our random number generator seeds defined in
-   * simparameters.h
-   */
-
   unsigned RANDOM_SEEDS[] = {RANDOM_SEED_LIST, 0};
   unsigned random_seed;
-  int j=0;
+  int j;
+  int MEAN_ARRIVAL_RATE;
+
+  printf("seed,MEAN_ARRIVAL_RATE_packets_per_second,voice_mean_delay_ms,"
+	 "data_mean_delay_ms,voice_packets,data_packets\n");
 
   /* 
    * Loop for each random number generator seed, doing a separate
    * simulation_run run for each.
    */
 
-  while ((random_seed = RANDOM_SEEDS[j++]) != 0) {
+    for(MEAN_ARRIVAL_RATE = MEAN_ARRIVAL_RATE_MIN;
+      MEAN_ARRIVAL_RATE <= MEAN_ARRIVAL_RATE_MAX;
+      MEAN_ARRIVAL_RATE += MEAN_ARRIVAL_RATE_STEP) {
+    for(j = 0; (random_seed = RANDOM_SEEDS[j]) != 0; j++) {
 
-    simulation_run = simulation_run_new(); /* Create a new simulation run. */
+      simulation_run = simulation_run_new();
 
-    /*
-     * Set the simulation_run data pointer to our data object.
-     */
+      simulation_run_attach_data(simulation_run, (void *) & data);
 
-    simulation_run_attach_data(simulation_run, (void *) & data);
+      memset(&data, 0, sizeof(data));
+      data.MEAN_ARRIVAL_RATE = MEAN_ARRIVAL_RATE;
+      data.random_seed = random_seed;
 
-    /* 
-     * Initialize the simulation_run data variables, declared in main.h.
-     */
-    
-    data.blip_counter = 0;
-    data.arrival_count = 0;
-    data.number_of_packets_processed = 0;
-    data.accumulated_delay = 0.0;
-    data.random_seed = random_seed;
- 
-    /* 
-     * Create the packet buffer and transmission link, declared in main.h.
-     */
+      data.buffer = fifoqueue_new();
+      data.link = server_new();
 
-    data.buffer = fifoqueue_new();
-    data.link   = server_new();
+      random_generator_initialize(random_seed);
 
-    /* 
-     * Set the random number generator seed for this run.
-     */
+      schedule_voice_packet_arrival_event(simulation_run,
+    					  simulation_run_get_time(simulation_run));
+      if(MEAN_ARRIVAL_RATE > 0)
+    	schedule_packet_arrival_event(simulation_run,
+    				      simulation_run_get_time(simulation_run) +
+              exponential_generator(1.0 / MEAN_ARRIVAL_RATE));
 
-    random_generator_initialize(random_seed);
+      while(data.number_of_packets_processed < RUNLENGTH)
+    	simulation_run_execute_event(simulation_run);
 
-    /* 
-     * Schedule the initial packet arrival for the current clock time (= 0).
-     */
-
-    schedule_packet_arrival_event(simulation_run, 
-				  simulation_run_get_time(simulation_run));
-
-    /* 
-     * Execute events until we are finished. 
-     */
-
-    while(data.number_of_packets_processed < RUNLENGTH) {
-      simulation_run_execute_event(simulation_run);
+      output_results(simulation_run);
+      cleanup_memory(simulation_run);
     }
-
-    /*
-     * Output results and clean up after ourselves.
-     */
-
-    output_results(simulation_run);
-    cleanup_memory(simulation_run);
   }
 
-  getchar();   /* Pause before finishing. */
   return 0;
 }
 

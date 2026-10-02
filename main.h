@@ -40,11 +40,15 @@ typedef struct _simulation_run_data_
   long int blip_counter;
   long int arrival_count;
   long int number_of_packets_processed;
-  double accumulated_delay;
+  long int arrivals_by_class[2];
+  long int processed_by_class[2];
+  double accumulated_delay_by_class[2];
+  int MEAN_ARRIVAL_RATE;
   unsigned random_seed;
 } Simulation_Run_Data, * Simulation_Run_Data_Ptr;
 
 typedef enum {XMTTING, WAITING} Packet_Status;
+typedef enum {VOICE_TRAFFIC, DATA_TRAFFIC} Traffic_Class;
 
 typedef struct _packet_ 
 {

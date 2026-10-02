@@ -79,13 +79,10 @@ end_packet_transmission_event(Simulation_Run_Ptr simulation_run, void * link)
 
   /* Collect statistics. */
   data->number_of_packets_processed++;
-  data->accumulated_delay += simulation_run_get_time(simulation_run) - 
-    this_packet->arrive_time;
+  data->processed_by_class[this_packet->source_id]++;
+  data->accumulated_delay_by_class[this_packet->source_id] +=
+    simulation_run_get_time(simulation_run) - this_packet->arrive_time;
 
-  /* Output activity blip every so often. */
-  output_progress_msg_to_screen(simulation_run);
-
-  /* This packet is done ... give the memory back. */
   xfree((void *) this_packet);
 
   /* 
@@ -122,14 +119,13 @@ start_transmission_on_link(Simulation_Run_Ptr simulation_run,
 }
 
 /*
- * Get a packet transmission time. For now it is a fixed value defined in
- * simparameters.h
+ * Get the serialization time of one G.711 voice packet, including its header.
  */
 
 double
 get_packet_transmission_time(void)
 {
-  return ((double) PACKET_XMT_TIME);
+  return ((double) VOICE_PACKET_XMT_TIME);
 }
 
 
